@@ -13,11 +13,7 @@ const app = express();
 app.use(bodyParser.json());
 
 // Enable CORS for all routes and origins
-app.use(cors({
-  origin: '*', // Allow all origins
-  methods: 'GET,POST,PUT,DELETE,OPTIONS', // Specify allowed HTTP methods
-  credentials: true
-}));
+app.use(cors());
 
 // Routes
 app.use('/api/users', userRoutes);
