@@ -5,7 +5,7 @@ const router = express.Router();
 
 // Create or check if a user already exists
 router.post('/createUser', async (req, res) => {
-  const { email, uid } = req.body;
+  const { email, userId } = req.body;
 
   try {
     const existingUser = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
@@ -18,9 +18,9 @@ router.post('/createUser', async (req, res) => {
       });
     }
 
-    const newUser = await pool.query('INSERT INTO users (email, uid) VALUES ($1, $2) RETURNING *', [
+    const newUser = await pool.query('INSERT INTO users (email, user_id) VALUES ($1, $2) RETURNING *', [
       email,
-      uid,
+      userId,
     ]);
 
     res.status(201).json({
@@ -51,11 +51,11 @@ router.get('/', async (req, res) => {
 });
 
 // Get a user by id
-router.get('/getUser/:uid', async (req, res) => {
-  const { uid } = req.params;
+router.get('/getUser/:userId', async (req, res) => {
+  const { userId } = req.params;
 
   try {
-    const result = await pool.query('SELECT * FROM users WHERE uid = $1', [uid]);
+    const result = await pool.query('SELECT * FROM users WHERE user_id = $1', [userId]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'User not found' });
@@ -109,14 +109,14 @@ router.put('/updateUserEmail/:email', async (req, res) => {
 });
 
 // Update users info
-router.put('/updateUserInfo/:uid', async (req, res) => {
-  const { uid } = req.params;
+router.put('/updateUserInfo/:userId', async (req, res) => {
+  const { userId } = req.params;
   const { firstName, lastName, favDrink } = req.body;
 
   try {
     const result = await pool.query(
-      'UPDATE users SET first_name = $1, last_name = $2, fav_drink = $3 WHERE uid = $4 RETURNING *',
-      [firstName, lastName, favDrink, uid]
+      'UPDATE users SET first_name = $1, last_name = $2, fav_drink = $3 WHERE user_id = $4 RETURNING *',
+      [firstName, lastName, favDrink, userId]
     );
 
     if (result.rows.length === 0) {
