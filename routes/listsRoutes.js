@@ -23,7 +23,7 @@ router.post('/createList', async (req, res) => {
   }
 });
 
-// Get all lists
+// Get all lists for user
 router.get('/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
@@ -43,12 +43,22 @@ router.get('/:userId', async (req, res) => {
 // Get a list by id
 router.get('/getList/:id', async (req, res) => {
   const { id } = req.params;
+  const { userId } = req.query;
 
   try {
-    const result = await pool.query('SELECT * FROM lists WHERE list_id = $1', [id]);
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    const result = await pool.query('SELECT * FROM lists WHERE list_id = $1 AND creator_id = $2', [
+      id,
+      userId,
+    ]);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'List not found' });
+      return res.status(404).json({
+        message: 'List not found or you are not authorized to view this list',
+      });
     }
 
     res.status(200).json(toCamelCase(result.rows[0]));
