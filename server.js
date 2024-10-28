@@ -2,6 +2,7 @@ const path = require('path');
 process.chdir(path.join(__dirname));
 
 const express = require('express');
+const authMiddleware = require('./authMiddleware');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const userRoutes = require('./routes/userRoutes');
@@ -17,8 +18,8 @@ app.use(bodyParser.json());
 app.use(cors());
 
 // Routes
-app.use('/api/users', userRoutes);
-app.use('/api/lists', listsRoutes);
+app.use('/api/users', authMiddleware, userRoutes);
+app.use('/api/lists', authMiddleware, listsRoutes);
 
 // For Vercel deployment
 app.get('/', (req, res) => res.send('Express on Vercel'));

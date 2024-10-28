@@ -24,9 +24,10 @@ router.post('/createList', async (req, res) => {
 });
 
 // Get all lists
-router.get('/', async (req, res) => {
+router.get('/:userId', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM lists');
+    const { userId } = req.params;
+    const result = await pool.query('SELECT * FROM lists WHERE creator_id = $1', [userId]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'No lists in database' });
