@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const userRoutes = require('./routes/userRoutes');
 const listsRoutes = require('./routes/listsRoutes');
+const itemsRoutes = require('./routes/itemsRoutes');
 require('dotenv').config();
 
 const app = express();
@@ -20,6 +21,7 @@ app.use(cors());
 // Routes
 app.use('/api/users', authMiddleware, userRoutes);
 app.use('/api/lists', authMiddleware, listsRoutes);
+app.use('/api/items', authMiddleware, itemsRoutes);
 
 // For Vercel deployment
 app.get('/', (req, res) => res.send('Express on Vercel'));

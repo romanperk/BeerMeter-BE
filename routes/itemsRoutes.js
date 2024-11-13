@@ -3,25 +3,29 @@ const pool = require('../database');
 const toCamelCase = require('../helpers/toCamelCase');
 const router = express.Router();
 
-// Create a list
-router.post('/createList', async (req, res) => {
-  const { place, type, userId } = req.body;
+// Create an item
+router.post('/createItem', async (req, res) => {
+  const { list_id, name, type, size, amount, price } = req.body;
 
   try {
     const newPlace = await pool.query(
-      'INSERT INTO lists (place, type, creator_id) VALUES ($1, $2, $3) RETURNING *',
-      [place, type, userId]
+      'INSERT INTO items (list_id, name, type, size, amount, price) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [list_id, name, type, size, amount, price]
     );
 
     res.status(201).json({
-      message: 'New list created',
-      user: toCamelCase(newPlace.rows[0]),
+      message: 'New item created',
+      item: toCamelCase(newPlace.rows[0]),
     });
   } catch (error) {
-    console.error('Error checking or creating list:', error);
-    res.status(500).json({ message: 'Error processing list' });
+    console.error('Error checking or creating item:', error);
+    res.status(500).json({ message: 'Error processing item' });
   }
 });
+
+// !
+// CHANGE THE ROUTES BELOW THIS!!!
+// !
 
 // Get all lists for user
 router.get('/:userId', async (req, res) => {
