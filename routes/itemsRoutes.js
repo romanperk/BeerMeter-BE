@@ -5,12 +5,12 @@ const router = express.Router();
 
 // Create an item
 router.post('/createItem', async (req, res) => {
-  const { list_id, name, type, size, amount, price } = req.body;
+  const { listId, name, type, size, amount, price } = req.body;
 
   try {
     const newPlace = await pool.query(
       'INSERT INTO items (list_id, name, type, size, amount, price) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [list_id, name, type, size, amount, price]
+      [listId, name, type, size, amount, price]
     );
 
     res.status(201).json({
