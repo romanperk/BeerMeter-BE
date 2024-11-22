@@ -27,48 +27,74 @@ router.post('/createItem', async (req, res) => {
 // CHANGE THE ROUTES BELOW THIS!!!
 // !
 
-// Get all lists for user
-router.get('/:userId', async (req, res) => {
+// Get all items for one list
+router.get('/getItems/:listId', async (req, res) => {
   try {
-    const { userId } = req.params;
-    const result = await pool.query('SELECT * FROM lists WHERE creator_id = $1', [userId]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'No lists in database' });
-    }
+    const { listId } = req.params;
+    const result = await pool.query('SELECT * FROM items WHERE list_id = $1', [listId]);
 
     res.status(200).json(toCamelCase(result.rows));
   } catch (error) {
-    console.error('Error fetching lists', error);
-    res.status(500).json({ message: 'Error fetching lists' });
+    console.error('Error fetching items', error);
+    res.status(500).json({ message: 'Error fetching items' });
   }
 });
 
-// Get a list by id
-router.get('/getList/:id', async (req, res) => {
-  const { id } = req.params;
-  const { userId } = req.query;
+// Increase amount of item
+router.put('/increase/:itemId', async (req, res) => {
+  const { itemId } = req.params;
 
   try {
-    if (!userId) {
-      return res.status(400).json({ message: 'User ID is required' });
+    if (!itemId) {
+      return res.status(400).json({ message: 'Item ID is required' });
     }
 
-    const result = await pool.query('SELECT * FROM lists WHERE list_id = $1 AND creator_id = $2', [
-      id,
-      userId,
-    ]);
+    // Update the item's amount by incrementing it by 1
+    const updateResult = await pool.query(
+      'UPDATE items SET amount = amount + 1 WHERE item_id = $1 RETURNING *',
+      [itemId]
+    );
 
-    if (result.rows.length === 0) {
+    if (updateResult.rows.length === 0) {
       return res.status(404).json({
-        message: 'List not found or you are not authorized to view this list',
+        message: 'Item not found or you are not authorized to modify this item',
       });
     }
 
-    res.status(200).json(toCamelCase(result.rows[0]));
+    // Return the updated item
+    res.status(200).json(toCamelCase(updateResult.rows[0]));
   } catch (error) {
-    console.error('Error fetching list:', error);
-    res.status(500).json({ message: 'Error fetching list' });
+    console.error('Error updating item amount:', error);
+    res.status(500).json({ message: 'Error updating item amount' });
+  }
+});
+
+// Decrease amount of item
+router.put('/decrease/:itemId', async (req, res) => {
+  const { itemId } = req.params;
+
+  try {
+    if (!itemId) {
+      return res.status(400).json({ message: 'Item ID is required' });
+    }
+
+    // Update the item's amount by incrementing it by 1
+    const updateResult = await pool.query(
+      'UPDATE items SET amount = amount - 1 WHERE item_id = $1 RETURNING *',
+      [itemId]
+    );
+
+    if (updateResult.rows.length === 0) {
+      return res.status(404).json({
+        message: 'Item not found or you are not authorized to modify this item',
+      });
+    }
+
+    // Return the updated item
+    res.status(200).json(toCamelCase(updateResult.rows[0]));
+  } catch (error) {
+    console.error('Error updating item amount:', error);
+    res.status(500).json({ message: 'Error updating item amount' });
   }
 });
 
@@ -95,20 +121,20 @@ router.put('/updateList/:id', async (req, res) => {
   }
 });
 
-// Delete list by id
-router.delete('/deleteList/:id', async (req, res) => {
+// Delete item by id
+router.delete('/deleteItem/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
-    const result = await pool.query('DELETE FROM lists WHERE list_id = $1 RETURNING *', [id]);
+    const result = await pool.query('DELETE FROM items WHERE item_id = $1 RETURNING *', [id]);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'List not found' });
+      return res.status(404).json({ message: 'Item not found' });
     }
 
-    res.status(200).json({ message: 'List deleted successfully', user: result.rows[0] });
+    res.status(200).json({ message: 'Item deleted successfully', user: result.rows[0] });
   } catch (error) {
-    console.error('Error deleting list:', error);
+    console.error('Error deleting item:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
