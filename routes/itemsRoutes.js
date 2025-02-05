@@ -132,11 +132,86 @@ router.delete('/deleteItem/:id', async (req, res) => {
       return res.status(404).json({ message: 'Item not found' });
     }
 
-    res.status(200).json({ message: 'Item deleted successfully', user: result.rows[0] });
+    res.status(200).json({ message: 'Item deleted successfully', item: result.rows[0] });
   } catch (error) {
     console.error('Error deleting item:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
+// Get item by id
+router.get('/getItem/:itemId', async (req, res) => {
+  const { itemId } = req.params;
+
+  try {
+    const result = await pool.query('SELECT * FROM items WHERE item_id = $1', [itemId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+
+    res.status(200).json(toCamelCase(result.rows[0]));
+  } catch (error) {
+    console.error('Error fetching item:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Edit item
+router.put('/updateItem/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, type, size, amount, price } = req.body;
+
+  try {
+    const fields = [];
+    const values = [];
+    let queryIndex = 1;
+
+    if (name !== undefined) {
+      fields.push(`name = $${queryIndex}`);
+      values.push(name);
+      queryIndex++;
+    }
+    if (type !== undefined) {
+      fields.push(`type = $${queryIndex}`);
+      values.push(type);
+      queryIndex++;
+    }
+    if (size !== undefined) {
+      fields.push(`size = $${queryIndex}`);
+      values.push(size);
+      queryIndex++;
+    }
+    if (amount !== undefined) {
+      fields.push(`amount = $${queryIndex}`);
+      values.push(amount);
+      queryIndex++;
+    }
+    if (price !== undefined) {
+      fields.push(`price = $${queryIndex}`);
+      values.push(price);
+      queryIndex++;
+    }
+
+    if (fields.length === 0) {
+      return res.status(400).json({ message: 'No fields provided for update' });
+    }
+
+    const query = `UPDATE items SET ${fields.join(', ')} WHERE item_id = $${queryIndex} RETURNING *`;
+    values.push(id);
+
+    const result = await pool.query(query, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+
+    res.status(200).json(toCamelCase(result.rows[0]));
+  } catch (error) {
+    console.error('Error updating item:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 
 module.exports = router;
